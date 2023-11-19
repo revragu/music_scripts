@@ -3,7 +3,6 @@
 from distutils.errors import UnknownFileError
 import sys, re, os, getopt, ragu_file, yaml
 from pydub import AudioSegment
-from mutagen.mp3 import MP3
 from mutagen import id3
 
 def eprint(*args, **kwargs):

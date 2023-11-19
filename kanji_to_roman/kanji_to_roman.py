@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 import os, re, json, datetime, argparse
-from ragu_cjk import convCharset, isCJK, isKana
+from ragu_lang import convCharset, isCJK, isKana, isRoman
 from pathlib import Path
 from discogs_query import discogs
 from ragu_file import readFileToList
@@ -69,7 +69,48 @@ def printStatus(in_str, artist, i, names_len):
         # for i in range(1,len(out_list) + 2):
         #     print("")
         #     print('\033[3A')
+
+# assign to the correct charset
+def assignCharset(name,artist_dict):
+    # check if we can split it
+    for delim in [['=',''],['（','）'],['(',')']]:
+        artist_dict,split=splitNames(name,artist_dict,delim[0],delim[1])
+        if split == True:
+            return(artist_dict)
         
+    if isKana(name.strip(),strict=True,ignore_spaces=True) and artist_dict['kana'] == '':
+        artist_dict['kana']=name.strip()
+        artist_dict['translit']=convCharset(artist_dict['kana'],'hepburn').title()
+    elif isCJK(name,strict=True) and artist_dict['kanji'] == '':
+        artist_dict['kanji']=name.strip()
+    elif isRoman(name.strip(),strict=True) and artist_dict['romaji'] == '':
+        artist_dict['romaji']=name.strip()
+        artist_dict['romaji_rev']=revName(artist_dict['romaji'])
+    return(artist_dict)
+
+def splitNames(name,artist_dict,delim='=',delim_end=''):
+    split=False
+    if delim in name:
+        for split_name in name.split(delim):
+            if delim_end != '':
+                split_name=split_name.replace(delim_end,'')
+            artist_dict=assignCharset(split_name,artist_dict)
+            split=True
+    #print(artist_dict)
+    return(artist_dict,split)
+
+
+def checkDiscogsArtistName(match_name,name,artist_dict):
+    if isCJK(name,strict=False):
+        # populate kanji, kana, translit
+        artist_dict=assignCharset(name,artist_dict)
+
+    elif artist_dict['romaji'] == '':
+        artist_dict['romaji']=name.strip()
+        artist_dict['romaji_rev']=revName(artist_dict['romaji'])
+    return(artist_dict)
+
+
 
 # query discogs for names
 def checkDiscogs(name,artist_dict):
@@ -79,29 +120,23 @@ def checkDiscogs(name,artist_dict):
     if artist_names == False:
         return(artist_dict)
     
-    for artist_name in artist_names:
-        if type(artist_name) == str:
-            is_cjk=isCJK(artist_name)
-            is_kana=isKana(artist_name)
-        else:
-            continue
+    # add all names from discogs, because they're sorted poorly and basically impossible to discern birth names from stage names and aliases, so might as well have the lot of them to choose from
+    out_names=[str(n) for n in artist_names]
+    artist_dict['discogs_names']=', '.join(out_names) 
 
-        # try to get kana name - needs to be first in case there's no kanji name
-        if is_kana and artist_dict['kana'] == '':
-            artist_dict['kana']=artist_name
-            artist_dict['translit']=convCharset(artist_dict['kana'],'hepburn').title()
-
-        # try to get kanji name
-        if is_cjk and not is_kana and artist_dict['kanji'] == '':
-            artist_dict['kanji']=artist_name
-            continue
-        
-        # try to get romaji
-        if is_cjk == False and artist_dict['romaji'] == '':
-            artist_dict['romaji']=artist_name
     
+    # artist name is the most accurate (for our purposes, we only care about the artist's preferred representations)
+    artist_dict=checkDiscogsArtistName(name,artist.name,artist_dict)
+
+    # go through the name list to fill in the blanks
+    if len(artist_names) > 0 and (artist_dict['kanji'] == '' or artist_dict['kana'] == '' or artist_dict['romaji'] == ''):
+        for artist_name in artist_names:
+            if type(artist_name) == str:
+                artist_dict=assignCharset(artist_name,artist_dict)
+            else:
+                continue
+
     if len(artist_names) > 0:
-        artist_dict['romaji_rev']=revName(artist_dict['romaji'])
         artist_dict['discogs_url']=artist.url
         artist_dict['discogs']=True
     else:
@@ -182,9 +217,9 @@ def getInfo(artist,name_info):
 
 # check vgmdb aliases
 def checkAliases(name, artist):
-    try:
+    if 'aliases' in artist.keys():
         aliases=artist['aliases']
-    except:
+    else:
         return(False)
     for alias in aliases:
         if name.replace(' ','') == alias.replace(' ',''):
@@ -245,6 +280,7 @@ def kanjiToRoman(names_list):
             'discogs': False,
             'best_guess': False,
             'kakasi_convert': False,
+            'discogs_names': '',
             'vgmdb_url': '',
             'discogs_url': ''
             

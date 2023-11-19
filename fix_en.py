@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 import sys
-from ragu_cjk import isCJK
+from ragu_lang import isCJK
 from ragu_file import readCsv, writeDictstoCsv
 
 def verifyCJK(artist_name,en_name):

@@ -3,7 +3,7 @@
 import sys
 from pykakasi import kakasi
 
-# stuff with cjk characters
+# language stuff
 
 # if character is CJK, return character. if not, return nothing. 
 def checkKanaChar(char):
@@ -17,15 +17,21 @@ def checkKanaChar(char):
     else:
         return(True)
 
-# verifies string has kana and no kanji
-def isKana(string):
-    kana_chrs=[]
+# verifies string has kana and no kanji. if sanitize_mode is true, get all kana chars from string and return only them. if strict == false, just verifies that there's kana in the string
+def isKana(string,sanitize_mode=False,strict=True,ignore_spaces=False):
+    if sanitize_mode == True and strict == True:
+        raise AttributeError('Sanitize mode and strict mode cannot be true at the same time')
+    kana_chrs=''
     for char in string:
-        if checkCJKChar(char) == True:
-            if checkKanaChar(char) == True:
-                kana_chrs.append(char)
-            else:
+        if checkKanaChar(char) == True:
+            kana_chrs+=char
+        elif char in [' ','　'] and ignore_spaces == True:
+            kana_chrs+=char
+        else:
+            if strict == True:
                 return(False)
+    if sanitize_mode == True:
+        return(kana_chrs)
     if len(kana_chrs) > 0:
         return(True)
               
@@ -54,8 +60,10 @@ def checkCJKChar(char):
     else:
         return(True)
 
-# check if string is cjk. 
-def isCJK(string,sanitize_mode=False):
+# check if string is cjk. if sanitize_mode is true, get all cjk chars from string and return only them. if strict == false, just verifies that there's cjk chars in the string
+def isCJK(string,sanitize_mode=False,strict=True):
+    if sanitize_mode == True and strict == True:
+        raise AttributeError('Sanitize mode and strict mode cannot be true at the same time')
     sanitize_str=''
     for chr in string:
         if checkCJKChar(chr) == True:
@@ -64,8 +72,36 @@ def isCJK(string,sanitize_mode=False):
             else:
                 return(True)
     
-    if sanitize_mode == False:
-        return(False)
+        elif sanitize_mode == False:
+            if strict == True:
+                return(False)
+
+    if len(sanitize_str) > 0:
+        return(sanitize_str)
+    else:
+        return(' ')
+
+def isRoman(string,sanitize_mode=False,strict=True):
+    if sanitize_mode == True and strict == True:
+        raise AttributeError('Sanitize mode and strict mode cannot be true at the same time')
+    sanitize_str=''
+    alphabet=[]
+    # generate alphabet
+    for i in range(65,91):
+        alphabet.append(chr(i))
+        alphabet.append(chr(i).lower())
+    # append numbers
+    for i in range(0,11):
+        alphabet.append(str(i))
+    # plus space
+    alphabet.append(' ')
+    for char in string:
+        if char in alphabet:
+            if sanitize_mode == True:
+                sanitize_str+=char
+        else:
+            if strict == True:
+                return(False)
 
     if len(sanitize_str) > 0:
         return(sanitize_str)
@@ -73,7 +109,6 @@ def isCJK(string,sanitize_mode=False):
         return(' ')
 
 
-            
 
 
 

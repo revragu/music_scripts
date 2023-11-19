@@ -3,7 +3,7 @@
 
 import sys, re, os, getopt
 from pathlib import Path
-from ragu_cjk import isCJK
+from ragu_lang import isCJK
 
 def usage():
     print("creates cue files for music downloaded from youtube based on timecodes from the description/comments (or wherever else you can get" + \

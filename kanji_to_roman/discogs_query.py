@@ -2,7 +2,7 @@
 
 import sys, os, re, requests, json, datetime, argparse, ragu_file, ragu_csv, discogs_client
 from pathlib import Path
-from ragu_cjk import convCharset
+from ragu_lang import convCharset
 from ragu_file import readFile
 from math import floor
 
@@ -30,7 +30,7 @@ class discogs():
 
     def compileNameList(self,artist):
         name_list=[]
-        for key in ['real_name','name','name_variations','aliases']:
+        for key in ['name','real_name','name_variations','aliases']:
             try:
                 key_val=getattr(artist, key)
             except discogs_client.exceptions.HTTPError as e:
