@@ -108,11 +108,6 @@ def checkDiscogs(name,artist_dict):
         artist_dict['discogs']=False
     return(artist_dict)
 
-
-    
-    
-    return(artist_dict)
-
 # reverse order of names
 def revName(name):
     split_name=name.split(' ')
