@@ -1,6 +1,13 @@
 #!/usr/bin/env python3
 
-import sys, http.client, re, time
+import sys, http.client, re, time, requests, json
+
+# basic http api request to server that returns json
+def httpReq(address_root,address_sub,req):
+    resp=requests.get(address_root + address_sub, req)
+    if resp.status_code == 200:
+        return(json.loads(resp.content),resp.status_code)
+    return(False,resp.status_code)
 
 # take an http address and create a dict from it with the protocol, domain, and path in separate keys.
 # strip leading/trailing spaces, split at slashes

@@ -3,6 +3,7 @@
 
 import sys, re, os, getopt
 from pathlib import Path
+from ragu_cjk import isCJK
 
 def usage():
     print("creates cue files for music downloaded from youtube based on timecodes from the description/comments (or wherever else you can get" + \
@@ -19,7 +20,7 @@ def usage():
 # regex subs kept ignoring the first char even if .* should be character OR anything so this is a simple parser to grab a set of chars defined by a regex
 # if it finds a character in the regex, goes into run mode and appends to a string, until a character doesn't match
 # returns when mode changes out of run and string meets criteria (min str len, max str len (0 = inf), a character that needs to be present)
-# has special mode to detect CJK characters if regex var is set to "isCJK"
+# has special mode to detect CJK characters if regex var is set to "isCJK"  
 def getString(line,regex,min_str=1,max_str=0,test_chr=None):
     is_cjk=False
     if regex=="isCJK":
@@ -31,7 +32,7 @@ def getString(line,regex,min_str=1,max_str=0,test_chr=None):
     for char in line:
         match=re.match(regex,char)
         if is_cjk:
-            cjk=isCJK(char)
+            cjk=isCJK(char,sanitize_mode=True)
             match=cjk == char
         if match:
             if mode=="char":
@@ -89,29 +90,6 @@ def compareYears(year_list):
         return("")
     else:
         return(champ)
-
-# checks if character exists within CJK unicode range
-def isCJK(char):
-    ranges = [
-    {"from": ord(u"\u3300"), "to": ord(u"\u33ff")},         # compatibility ideographs
-    {"from": ord(u"\ufe30"), "to": ord(u"\ufe4f")},         # compatibility ideographs
-    {"from": ord(u"\uf900"), "to": ord(u"\ufaff")},         # compatibility ideographs
-    {"from": ord(u"\U0002F800"), "to": ord(u"\U0002fa1f")}, # compatibility ideographs
-    {'from': ord(u'\u3040'), 'to': ord(u'\u309f')},         # Japanese Hiragana
-    {"from": ord(u"\u30a0"), "to": ord(u"\u30ff")},         # Japanese Katakana
-    {"from": ord(u"\u2e80"), "to": ord(u"\u2eff")},         # cjk radicals supplement
-    {"from": ord(u"\u4e00"), "to": ord(u"\u9fff")},
-    {"from": ord(u"\u3400"), "to": ord(u"\u4dbf")},
-    {"from": ord(u"\U00020000"), "to": ord(u"\U0002a6df")},
-    {"from": ord(u"\U0002a700"), "to": ord(u"\U0002b73f")},
-    {"from": ord(u"\U0002b740"), "to": ord(u"\U0002b81f")},
-    {"from": ord(u"\U0002b820"), "to": ord(u"\U0002ceaf")}  # included as of Unicode 8.0
-    ]
-    result=any([range["from"] <= ord(char) <= range["to"] for range in ranges])
-    if result == False:
-        return("")
-    else:
-        return(char)
 
 # removes any parentheses
 def removeParentheses(string):

@@ -1,10 +1,8 @@
 #!/usr/bin/env python3
 
-from distutils.errors import UnknownFileError
-from datetime import datetime
 from operator import itemgetter
 from pathlib import Path
-import yaml, getopt, sys, os, re, ragu_file
+import getopt, sys, os, re
 
 def usage():
     print("-i input file, tab separated list of hash + path. if no other options, will just print masters and duplicates to stdout")
@@ -61,18 +59,24 @@ def delDups(in_dupelist,dry_run):
 
 
 def moveDups(in_dupelist,move_to):
+
     master,dupes=getDups(in_dupelist)
     for dupe in dupes:
-        file_name=str(os.path.basename(dupe["dupe"]))
+        curr_dupe=re.sub(r'^"(.*)"$',r'\1',str(dupe["dupe"]))
+        file_name=str(os.path.basename(curr_dupe))
     
-        dupe_path_str=str(dupe["dupe"].parent)
-        dupe_path_base=re.sub(r'^(\.|\~)(\.|)','',dupe_path_str)
-        new_path_str=(str(move_to) + dupe_path_base).replace('//','/')
+        dupe_path_str=Path(curr_dupe).parent
+        dupe_path_base=re.sub(r'^(\.|\~|[A-Za-z]:\\)(\.|)','',str(dupe_path_str))
+        dupe_path_base=re.sub(r'^"(.*)',r'\1',str(dupe_path_base))
+        new_path_str=(str(move_to) + str(dupe_path_base)).replace('//','/')
+
         new_path=Path(new_path_str)
+        
         if not os.path.exists(new_path):
             os.makedirs(new_path)
         dest_path=Path((new_path_str + '/' + file_name).replace('//','/'))
-        os.rename(dupe["dupe"],dest_path)
+
+        os.rename(curr_dupe,dest_path)
 
 
         

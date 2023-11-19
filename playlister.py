@@ -1,9 +1,7 @@
 #!/usr/bin/env python3
 
-from distutils.errors import UnknownFileError
-import sys, re, os, getopt, ragu_file,math,multiprocessing
+import sys, re, os, getopt, math,multiprocessing
 from pathlib import Path
-from pydub import AudioSegment
 import mutagen
 from mutagen import File as audioFile
 from random import randrange
