@@ -3,7 +3,7 @@
 import os, re, json, datetime, argparse
 from ragu_lang import convCharset, isCJK, isKana, isRoman
 from pathlib import Path
-from discogs_query import discogs
+from ragu_discogs import discogs
 from ragu_file import readFileToList
 from ragu_stuff import progressbar
 from ragu_http import httpReq

@@ -1,11 +1,8 @@
 #!/usr/bin/env python3
 
-import sys, os, re, requests, json, datetime, argparse, ragu_file, ragu_csv, discogs_client
+import sys, os, discogs_client
 from pathlib import Path
-from ragu_lang import convCharset
 from ragu_file import readFile
-from math import floor
-
 
 class discogs():
     def __init__(self,token_file='discogs_token.txt'):
